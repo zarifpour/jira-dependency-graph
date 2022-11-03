@@ -175,13 +175,28 @@ def build_graph_data(
 
         if link_type.strip() in excludes:
             return linked_issue_key, None
-
+        
         arrow = " => " if direction == "outward" else " <= "
         log(issue_key + arrow + link_type + arrow + linked_issue_key)
 
-        extra = ',color="red"' if link_type == "blocks" else ""
+        extra = ""
+        if link_type == "blocks":
+            extra = ',color="red"'
+        if link_type == "has to be done before":
+            extra = ',color="orange"'
+            
 
         if direction not in show_directions:
+            node = None  
+        elif link_type == "is blocked by":
+            node = None
+        elif link_type == "has to be done after":
+            node = None
+        elif link_type == "is child of":
+            node = None
+        elif link_type == "tests":
+            node = None
+        elif link_type == "duplicates":
             node = None
         else:
             # log("Linked issue summary " + linked_issue['fields']['summary'])
