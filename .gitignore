@@ -1,3 +1,7 @@
+.venv
+.vscode
+issue_graph.png
+
 # OS / IDE specific
 .DS_Store
 .idea

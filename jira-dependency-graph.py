@@ -277,9 +277,9 @@ def main():
         # Basic Auth is usually easier for scripts like this to deal with than Cookies.
         user = options.user if options.user is not None \
                     else input('Username: ')
-        password = options.password if options.password is not None \
+        api_token = options.password if options.password is not None \
                     else getpass.getpass('Password: ')
-        auth = (user, password)
+        auth = (user, api_token)
 
     jira = JiraSearch(options.jira_url, auth, options.no_verify_ssl)
 
