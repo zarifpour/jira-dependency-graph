@@ -88,6 +88,7 @@ Writing to /path/to/jira-dependency-graph/out/png/BLK-899.png
 | Exclude issue(s)  | `--issue-exclude` / `-xi` | `... JIRA-8 --issue-exclude JIRA-2` | Can be repeated to exclude multiple issues. Use as last-resort when other exclusions not suitable.  |
 | Use JQL           | `--jql` | `... --jql 'project = Blockchain'` | Instead of passing issue-keys, a Jira Query Language command can be passed
 | Ignore closed     | `--ignore-closed`         | `... JIRA-8 --ignore-closed` | Ignore all tickets that are closed. |
+| No merge relates  | `--no-merge-relates`      | `... JIRA-8 --no-merge-relates` | Do not merge edges of related issues. |
 
 > **Note**
 > `...` is equivalent to `python jira-dependency-graph.py --user=<JIRA_EMAIL> --password=<JIRA_API_KEY> --jira=https://<YOUR_ORGANIZATION>.atlassian.net`

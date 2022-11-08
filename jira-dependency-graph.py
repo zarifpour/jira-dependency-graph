@@ -14,6 +14,8 @@ from functools import reduce
 GOOGLE_CHART_URL = "https://chart.apis.google.com/chart"
 MAX_SUMMARY_LENGTH = 30
 
+FETCHED_ISSUES = {}
+
 
 def log(*args):
     print(*args, file=sys.stderr)
@@ -66,11 +68,16 @@ class JiraSearch(object):
     def get_issue(self, key):
         """Given an issue key (i.e. JRA-9) return the JSON representation of it. This is the only place where we deal
         with JIRA's REST API."""
+        if key in FETCHED_ISSUES:
+            log("Already fetched", key)
+            return FETCHED_ISSUES[key]
         log("Fetching " + key)
         # we need to expand subtasks and links since that's what we care about here.
         response = self.get("/issue/%s" % key, params={"fields": self.fields})
         response.raise_for_status()
-        return response.json()
+        ret = response.json()
+        FETCHED_ISSUES[key] = ret
+        return ret
 
     def query(self, query):
         log("Querying " + query)
@@ -102,6 +109,7 @@ def build_graph_data(
     ignore_subtasks,
     traverse,
     word_wrap,
+    merge_relates,
 ):
     """Given a starting image key and the issue-fetching function build up the GraphViz data representing relationships
     between issues. This will consider both subtasks and issue links.
@@ -185,6 +193,8 @@ def build_graph_data(
             extra = ',color="red"'
         if link_type == "has to be done before":
             extra = ',color="orange"'
+        if link_type == "relates to" and merge_relates:
+            extra = ", dir=both"
 
         skip_links = [
             "is blocked by",
@@ -254,6 +264,8 @@ def build_graph_data(
 
         if "issuelinks" in fields:
             for other_link in fields["issuelinks"]:
+                if merge_relates:
+                    remove_duplicate_links(issue_key, other_link, "Relates")
                 result = process_link(fields, issue_key, other_link)
                 if result is not None:
                     log("Appending " + result[0])
@@ -264,6 +276,26 @@ def build_graph_data(
         for child in (x for x in children if x not in seen):
             walk(child, graph)
         return graph
+
+    def remove_duplicate_links(issue_key, other_link, link_type):
+        linked_issue_key = list(other_link.values())[3]["key"]
+        _ = jira.get_issue(linked_issue_key)
+        if FETCHED_ISSUES[linked_issue_key]["fields"]["issuelinks"]:
+            for link in FETCHED_ISSUES[linked_issue_key]["fields"]["issuelinks"]:
+                if ("outwardIssue" in link and
+                        link["type"]["name"] == link_type
+                        and link["outwardIssue"]["key"] == issue_key
+                    ):
+                        FETCHED_ISSUES[linked_issue_key]["fields"]["issuelinks"].remove(
+                            link
+                        )
+                if ("inwardIssue" in link and
+                        link["type"]["name"] == link_type
+                        and link["inwardIssue"]["key"] == issue_key
+                    ):
+                        FETCHED_ISSUES[linked_issue_key]["fields"]["issuelinks"].remove(
+                            link
+                        )
 
     project_prefix = start_issue_key.split("-", 1)[0]
     return walk(start_issue_key, [])
@@ -449,6 +481,13 @@ def parse_args():
     parser.add_argument(
         "issues", nargs="*", help="The issue key (e.g. JRADEV-1107, JRADEV-1391)"
     )
+    parser.add_argument(
+        "--no-merge-relates",
+        dest="merge_relates",
+        default=True,
+        action="store_false",
+        help="Do not merge 'relates to' edges",
+    )
     return parser.parse_args()
 
 
@@ -500,6 +539,7 @@ def main():
             options.ignore_subtasks,
             options.traverse,
             options.word_wrap,
+            options.merge_relates
         )
 
     if options.local:
