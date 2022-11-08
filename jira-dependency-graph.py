@@ -6,6 +6,7 @@ import argparse
 import getpass
 import sys
 import textwrap
+import os
 
 import requests
 from functools import reduce
@@ -175,7 +176,7 @@ def build_graph_data(
 
         if link_type.strip() in excludes:
             return linked_issue_key, None
-        
+
         arrow = " => " if direction == "outward" else " <= "
         log(issue_key + arrow + link_type + arrow + linked_issue_key)
 
@@ -184,19 +185,18 @@ def build_graph_data(
             extra = ',color="red"'
         if link_type == "has to be done before":
             extra = ',color="orange"'
-            
 
-        if direction not in show_directions:
-            node = None  
-        elif link_type == "is blocked by":
-            node = None
-        elif link_type == "has to be done after":
-            node = None
-        elif link_type == "is child of":
-            node = None
-        elif link_type == "tests":
-            node = None
-        elif link_type == "duplicates":
+        skip_links = [
+            "is blocked by",
+            "has to be done after",
+            "is child of",
+            "tests",
+            "duplicates",
+            "created by",
+            "clones",
+        ]
+
+        if direction not in show_directions or link_type in skip_links:
             node = None
         else:
             # log("Linked issue summary " + linked_issue['fields']['summary'])
@@ -269,7 +269,7 @@ def build_graph_data(
     return walk(start_issue_key, [])
 
 
-def create_graph_image(graph_data, image_file, node_shape):
+def create_graph_image(graph_data, file_name, node_shape):
     """Given a formatted blob of graphviz chart data[1], make the actual request to Google
     and store the resulting image to disk.
 
@@ -279,13 +279,26 @@ def create_graph_image(graph_data, image_file, node_shape):
 
     response = requests.post(GOOGLE_CHART_URL, data={"cht": "gv", "chl": digraph})
 
-    with open(image_file, "w+b") as image:
-        print("Writing to " + image_file)
-        binary_format = bytearray(response.content)
-        image.write(binary_format)
-        image.close()
+    d = os.path.dirname(__file__)
+    p = d + "/out/"
+    gvp = p + "gv/"
+    pngp = p + "png/"
 
-    return image_file
+    with open(gvp + file_name + ".gv", "w") as gv:
+        print("Writing to " + gvp + file_name + ".gv")
+        gv.write(digraph)
+        gv.close()
+
+    try:
+        with open(pngp + file_name + ".png", "w+b") as image:
+            print("Writing to " + pngp + file_name + ".png")
+            binary_format = bytearray(response.content)
+            image.write(binary_format)
+            image.close()
+    except Exception as ex:
+        log("Failed to create image: " + ex)
+
+    return file_name
 
 
 def print_graph(graph_data, node_shape):
@@ -332,7 +345,7 @@ def parse_args():
         "-f",
         "--file",
         dest="image_file",
-        default="issue_graph.png",
+        default="issue_graph",
         help="Filename to write image to",
     )
     parser.add_argument(
@@ -347,7 +360,7 @@ def parse_args():
         "--ignore-epic",
         action="store_true",
         default=False,
-        help="Don" "t follow an Epic into it" "s children issues",
+        help="Do not follow an Epic into it's child issues",
     )
     parser.add_argument(
         "-x",
@@ -381,14 +394,14 @@ def parse_args():
         "--show-directions",
         dest="show_directions",
         default=["inward", "outward"],
-        help="which directions to show (inward, outward)",
+        help="Which directions to show (inward, outward)",
     )
     parser.add_argument(
         "-d",
         "--directions",
         dest="directions",
         default=["inward", "outward"],
-        help="which directions to walk (inward, outward)",
+        help="Which directions to walk (inward, outward)",
     )
     parser.add_argument(
         "--jql",
@@ -401,14 +414,14 @@ def parse_args():
         "--node-shape",
         dest="node_shape",
         default="box",
-        help="which shape to use for nodes (circle, box, ellipse, etc)",
+        help="Which shape to use for nodes (circle, box, ellipse, etc...)",
     )
     parser.add_argument(
         "-t",
         "--ignore-subtasks",
         action="store_true",
         default=False,
-        help="Don" "t include sub-tasks issues",
+        help="Ignore sub-tasks issues",
     )
     parser.add_argument(
         "-T",
@@ -416,7 +429,7 @@ def parse_args():
         dest="traverse",
         action="store_false",
         default=True,
-        help="Do not traverse to other projects",
+        help="Ignore other projects",
     )
     parser.add_argument(
         "-w",
@@ -431,7 +444,7 @@ def parse_args():
         dest="no_verify_ssl",
         default=False,
         action="store_true",
-        help="Don't verify SSL certs for requests",
+        help="Do not verify SSL certs for requests",
     )
     parser.add_argument(
         "issues", nargs="*", help="The issue key (e.g. JRADEV-1107, JRADEV-1391)"
@@ -493,7 +506,11 @@ def main():
         print_graph(filter_duplicates(graph), options.node_shape)
     else:
         create_graph_image(
-            filter_duplicates(graph), options.image_file, options.node_shape
+            filter_duplicates(graph),
+            options.image_file
+            if options.image_file != "issue_graph"
+            else "+".join(options.issues),
+            options.node_shape,
         )
 
 

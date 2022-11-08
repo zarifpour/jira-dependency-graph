@@ -1,6 +1,8 @@
 .venv
 .vscode
-issue_graph.png
+_*
+out/gv/*
+out/png/*
 
 # OS / IDE specific
 .DS_Store
