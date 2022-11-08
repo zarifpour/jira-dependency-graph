@@ -34,7 +34,7 @@ git clone https://github.com/zarifpour/jira-dependency-graph.git
 cd jira-dependency-graph
 poetry install
 poetry shell
-python jira-dependency-graph.py --user=<JIRA_EMAIL> --password=<JIRA_API_KEY> --jira=https://YOUR_ORGANIZATION.atlassian.net <JIRA_ISSUE_KEY>
+python jira-dependency-graph.py --user=<JIRA_EMAIL> --password=<JIRA_API_KEY> --jira=https://<YOUR_ORGANIZATION>.atlassian.net <JIRA_ISSUE_KEY>
 ```
 
 > **Note**
