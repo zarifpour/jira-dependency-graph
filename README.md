@@ -90,7 +90,7 @@ Writing to /path/to/jira-dependency-graph/out/png/BLK-899.png
 | Ignore closed     | `--ignore-closed`         | `... JIRA-8 --ignore-closed` | Ignore all tickets that are closed. |
 
 > **Note**
-> `...` is equivalent to `python jira-dependency-graph.py --user=<JIRA_EMAIL> --password=<JIRA_API_KEY> --jira=https://YOUR_ORGANIZATION.atlassian.net`
+> `...` is equivalent to `python jira-dependency-graph.py --user=<JIRA_EMAIL> --password=<JIRA_API_KEY> --jira=https://<YOUR_ORGANIZATION>.atlassian.net`
 
 ## Notes
 
