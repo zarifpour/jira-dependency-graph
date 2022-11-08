@@ -86,7 +86,7 @@ Writing to /path/to/jira-dependency-graph/out/png/BLK-899.png
 | Ignore Epic       | `--ignore-epic`           | `... --ignore-epic JIRA-8` | Do not walk into issues of an Epic.  |
 | Filter by issue prefix  | `--issue-include`   | `... JIRA-8 --issue-include BLK`  | Only display issues with specified prefix, in this example the prefix is "BLK". |
 | Exclude issue(s)  | `--issue-exclude` / `-xi` | `... JIRA-8 --issue-exclude JIRA-2` | Can be repeated to exclude multiple issues. Use as last-resort when other exclusions not suitable.  |
-| Use JQL           | `--jql` | `... --jql 'project = Blockchain'` | Instead of passing issue-keys, a Jira Query Language command can be passed
+| Use JQL           | `--jql` | `... --jql 'project = Blockchain'` | Instead of passing issue-keys, a Jira Query Language command can be passed.
 | Ignore closed     | `--ignore-closed`         | `... JIRA-8 --ignore-closed` | Ignore all tickets that are closed. |
 | No merge "relates to"  | `--no-merge-relates`      | `... JIRA-8 --no-merge-relates` | Do not merge edges of related issues. |
 
