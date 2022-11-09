@@ -9,7 +9,8 @@ Graph visualizer for dependencies between JIRA tickets (with subtasks and issue 
   <summary>Requirements</summary>
 
 * Python 2.7+ or Python 3+
-* [requests](http://docs.python-requests.org/en/master/)
+* [poetry](https://github.com/python-poetry/poetry)
+* [requests](https://github.com/psf/requests)
 
 </details>
 
