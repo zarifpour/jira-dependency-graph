@@ -204,6 +204,7 @@ def build_graph_data(
             "duplicates",
             "created by",
             "clones",
+            "is caused by"
         ]
 
         if direction not in show_directions or link_type in skip_links:
