@@ -89,21 +89,43 @@ Writing to /path/to/jira-dependency-graph/out/png/BLK-899.png
 | Exclude issue(s)  | `--issue-exclude` / `-xi` | `... JIRA-8 --issue-exclude JIRA-2` | Can be repeated to exclude multiple issues. Use as last-resort when other exclusions not suitable.  |
 | Use JQL           | `--jql` | `... --jql 'project = Blockchain'` | Instead of passing issue-keys, a Jira Query Language command can be passed.
 | Ignore closed     | `--ignore-closed`         | `... JIRA-8 --ignore-closed` | Ignore all tickets that are closed. |
-| No merge "relates to"  | `--no-merge-relates`      | `... JIRA-8 --no-merge-relates` | Do not merge edges of related issues. |
+| No merge "relates to"  | `--no-merge-relates`      | `... JIRA-8 --no-merge-relates` | Do not merge edges of related issues (creates cycle). |
 
 > **Note**
 > `...` is equivalent to `python jira-dependency-graph.py --user=<JIRA_EMAIL> --password=<JIRA_API_KEY> --jira=https://<YOUR_ORGANIZATION>.atlassian.net`
 
 ## Contributing
 
+To make this tool even more awesome, consider some of the following tips and guidelines to add your contributions.
+
 ### Schemas
 
-Schemas make things much easier... To add a schema:
+Schemas makes data much easier to consume... To add a schema from the JIRA API:
 
-1. Autogenerate a schema from this [URL](https://docs.atlassian.com/software/jira/docs/api/REST/9.3.1/#api/2/issueLink-getIssueLink) with this package
+1. Copy-paste one of the JIRA json schemas into `schemas/json/<SCHEMA>.json` from this [URL](https://docs.atlassian.com/software/jira/docs/api/REST/9.3.1/#api/2/).
+2. Autogenerate the pydantic schema with the datamodel-codegen tool (see code sample below).
+3. Replace `constr(...)` - in most cases - with `Any` from the typing package.
+4. Play around with it and update as necessary.
 
 ```shell
 datamodel-codegen  --input schemas/json/<SCHEMA>.json --input-file-type jsonschema --output schemas/<SCHEMA>.py
+```
+
+### Pre-commit
+
+The pre-commit ensures code quality. Several checks are done upon each commit, including:
+
+* black
+* mypy
+* flake8
+* isort
+
+Ensure these requirements are satisfied before committing.
+
+Alternatively, if you would like to ignore the pre-commit checks, use the following command:
+
+```shell
+git commit . -m '<COMMIT_MSG>' --no-verify
 ```
 
 ## Notes
