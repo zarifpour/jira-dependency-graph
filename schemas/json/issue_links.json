@@ -1,0 +1,176 @@
+{
+    "id": "https://docs.atlassian.com/jira/REST/schema/issue-link#",
+    "title": "Issue Link",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "self": {
+            "type": "string",
+            "format": "uri"
+        },
+        "type": {
+            "title": "Issue Link Type",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "inward": {
+                    "type": "string"
+                },
+                "outward": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string",
+                    "format": "uri"
+                }
+            },
+            "additionalProperties": false
+        },
+        "inwardIssue": {
+            "$ref": "#/definitions/issue-ref"
+        },
+        "outwardIssue": {
+            "$ref": "#/definitions/issue-ref"
+        }
+    },
+    "definitions": {
+        "issue-ref": {
+            "title": "Issue Ref",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string",
+                    "format": "uri"
+                },
+                "fields": {
+                    "title": "Fields",
+                    "type": "object",
+                    "properties": {
+                        "summary": {
+                            "type": "string"
+                        },
+                        "status": {
+                            "title": "Status",
+                            "type": "object",
+                            "properties": {
+                                "self": {
+                                    "type": "string"
+                                },
+                                "statusColor": {
+                                    "type": "string"
+                                },
+                                "description": {
+                                    "type": "string"
+                                },
+                                "iconUrl": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "id": {
+                                    "type": "string"
+                                },
+                                "statusCategory": {
+                                    "title": "Status Category",
+                                    "type": "object",
+                                    "properties": {
+                                        "self": {
+                                            "type": "string"
+                                        },
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "key": {
+                                            "type": "string"
+                                        },
+                                        "colorName": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "issuetype": {
+                            "title": "Issue Type",
+                            "type": "object",
+                            "properties": {
+                                "self": {
+                                    "type": "string"
+                                },
+                                "id": {
+                                    "type": "string"
+                                },
+                                "description": {
+                                    "type": "string"
+                                },
+                                "iconUrl": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "subtask": {
+                                    "type": "boolean"
+                                },
+                                "avatarId": {
+                                    "type": "integer"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": [
+                                "subtask"
+                            ]
+                        },
+                        "priority": {
+                            "title": "Priority",
+                            "type": "object",
+                            "properties": {
+                                "self": {
+                                    "type": "string"
+                                },
+                                "statusColor": {
+                                    "type": "string"
+                                },
+                                "description": {
+                                    "type": "string"
+                                },
+                                "iconUrl": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "id": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": false
+}

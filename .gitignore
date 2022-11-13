@@ -3,6 +3,7 @@
 _*
 out/gv/*
 out/png/*
+.mypy_cache
 
 # OS / IDE specific
 .DS_Store

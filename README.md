@@ -94,6 +94,18 @@ Writing to /path/to/jira-dependency-graph/out/png/BLK-899.png
 > **Note**
 > `...` is equivalent to `python jira-dependency-graph.py --user=<JIRA_EMAIL> --password=<JIRA_API_KEY> --jira=https://<YOUR_ORGANIZATION>.atlassian.net`
 
+## Contributing
+
+### Schemas
+
+Schemas make things much easier... To add a schema:
+
+1. Autogenerate a schema from this [URL](https://docs.atlassian.com/software/jira/docs/api/REST/9.3.1/#api/2/issueLink-getIssueLink) with this package
+
+```shell
+datamodel-codegen  --input schemas/json/<SCHEMA>.json --input-file-type jsonschema --output schemas/<SCHEMA>.py
+```
+
 ## Notes
 
 This is a fork of [pawelrychlik/jira-dependency-graph](https://github.com/pawelrychlik/jira-dependency-graph), please refer to that repository for complete documentation. The old repo does not indicate that you must use your API key instead of your password to authenticate and enables duplicated relationships by default (i.e. nodes that are connected may have the relationship "blocks" and "is blocked by" pointing to each other). You may use that repo and exclude specific links, but this repo excludes some of them by default.
