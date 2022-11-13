@@ -4,17 +4,21 @@ from __future__ import print_function
 
 import argparse
 import getpass
+import itertools
 import os
 import sys
 import textwrap
+import threading
+import time
+import typing
 from functools import reduce
-from typing import Dict, List, Literal, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 import requests
 from requests.models import Response
 
-from schemas.issue_links import IssueLink, Status
-from schemas.jira import Issue, IssueFields
+from schemas.issue_links import Fields, IssueRef
+from schemas.jira import Issue, IssueFields, IssueLink, Status
 
 GOOGLE_CHART_URL = "https://chart.apis.google.com/chart"
 MAX_SUMMARY_LENGTH = 30
@@ -76,9 +80,9 @@ class JiraSearch(object):
         """Given an issue key (i.e. JRA-9) return the JSON representation of it.
         This is the only place where we deal with JIRA's REST API."""
         if key in FETCHED_ISSUES:
-            log("Already fetched", key)
+            # log("Already fetched", key)
             return FETCHED_ISSUES[key]
-        log("Fetching " + key)
+        # log("Fetching " + key)
         # we need to expand subtasks and links since that's what we care about here.
         response = self.get("/issue/%s" % key, params={"fields": self.fields})
         response.raise_for_status()
@@ -87,20 +91,20 @@ class JiraSearch(object):
         return ret
 
     def query(self, query: str) -> List[Issue]:
-        log("Querying " + query)
+        # log("Querying " + query)
         response = self.get("/search", params={"jql": query, "fields": self.fields})
         resp_json = response.json()
         return [Issue.parse_obj(issue) for issue in resp_json["issues"]]
 
     def list_ids(self, query: str) -> List[str]:
-        log("Querying " + query)
+        # log("Querying " + query)
         response = self.get(
             "/search", params={"jql": query, "fields": "key", "maxResults": 100}
         )
         return [issue["key"] for issue in response.json()["issues"]]
 
     def get_issue_uri(self, issue_key: str) -> str:
-        return self.__base_url + "/browse/" + issue_key
+        return self.__base_url + "/browse/" + issue_key  # type: ignore
 
 
 def build_graph_data(
@@ -131,7 +135,7 @@ def build_graph_data(
         return "white"
 
     def create_node_text(
-        issue_key: str, fields: IssueFields, islink: bool = True
+        issue_key: str, fields: Union[IssueFields, Fields], islink: bool = True
     ) -> str:
         summary = fields.summary
         status = fields.status
@@ -147,7 +151,6 @@ def build_graph_data(
             if len(summary) > MAX_SUMMARY_LENGTH + 2:
                 summary = fields.summary[:MAX_SUMMARY_LENGTH] + "..."
         summary = summary.replace('"', '\\"')
-        # log('node ' + issue_key + ' status = ' + str(status))
 
         if islink:
             return '"{}\\n({})"'.format(issue_key, summary)
@@ -159,7 +162,8 @@ def build_graph_data(
         fields: IssueFields, issue_key: str, link: IssueLink
     ) -> Optional[Tuple[str, Optional[str]]]:
         if link.outwardIssue is None and link.inwardIssue is None:
-            return
+            return None
+
         if link.outwardIssue is not None:
             direction = "outward"
             link_type = link.type.outward
@@ -169,12 +173,12 @@ def build_graph_data(
             link_type = link.type.inward
             linked_issue = link.inwardIssue
 
-        if direction not in directions:
-            return
+        if not link_type or direction not in directions:
+            return None
 
         if linked_issue.key in issue_excludes:
-            log("Skipping " + linked_issue.key + " - explicitly excluded")
-            return
+            # log("Skipping " + linked_issue.key + " - explicitly excluded")
+            return None
 
         if ignore_closed and (
             ((link.inwardIssue) and (link.inwardIssue.fields.status.name == "Closed"))
@@ -183,17 +187,17 @@ def build_graph_data(
                 and (link.outwardIssue.fields.status.name == "Closed")
             )
         ):
-            log("Skipping " + linked_issue.key + " - linked key is Closed")
-            return
+            # log("Skipping " + linked_issue.key + " - linked key is Closed")
+            return None
 
         if includes not in linked_issue.key:
-            return
+            return None
 
-        if link_type.strip() in excludes:
+        if link.type.name.strip() in excludes:
             return linked_issue.key, None
 
-        arrow = " => " if direction == "outward" else " <= "
-        log(issue_key + arrow + link_type + arrow + linked_issue.key)
+        # arrow = " => " if direction == "outward" else " <= "
+        # log(issue_key + arrow + link_type + arrow + linked_issue.key)
 
         extra = ""
         if link_type == "blocks":
@@ -218,7 +222,6 @@ def build_graph_data(
         if direction not in show_directions or link_type in skip_links:
             node = None
         else:
-            # log("Linked issue summary " + linked_issue['fields']['summary'])
             node = '{}->{}[label="{}"{}]'.format(
                 create_node_text(issue_key, fields),
                 create_node_text(linked_issue.key, linked_issue.fields),
@@ -231,7 +234,7 @@ def build_graph_data(
     # since the graph can be cyclic we need to prevent infinite recursion
     seen = []
 
-    def walk(issue_key: str, graph: List) -> Issue:
+    def walk(issue_key: str, graph: List) -> Union[Issue, List[Any]]:
         """issue is the JSON representation of the issue"""
         issue: Issue = jira.get_issue(issue_key)
         children = []
@@ -239,21 +242,22 @@ def build_graph_data(
         seen.append(issue_key)
 
         if ignore_closed and (fields.status.name == "Closed"):
-            log("Skipping " + issue_key + " - it is Closed")
+            # log("Skipping " + issue_key + " - it is Closed")
             return graph
 
         if not traverse and ((project_prefix + "-") not in issue_key):
-            log("Skipping " + issue_key + " - not traversing to a different project")
+            # log("Skipping " + issue_key + " - not traversing to a different project")
             return graph
 
         graph.append(create_node_text(issue_key, fields, islink=False))
 
         if not ignore_subtasks:
+            subtask: Union[Issue, IssueRef]
             if fields.issuetype.name == "Epic" and not ignore_epic:
                 issues: List[Issue] = jira.query('"Epic Link" = "%s"' % issue_key)
                 for subtask in issues:
-                    log(subtask.key + " => references epic => " + issue_key)
-                    node = "{}->{}[color=orange]".format(
+                    # log(subtask.key + " => references epic => " + issue_key)
+                    node: str = "{}->{}[color=orange]".format(
                         create_node_text(issue_key, fields),
                         create_node_text(subtask.key, subtask.fields),
                     )
@@ -261,8 +265,8 @@ def build_graph_data(
                     children.append(subtask.key)
             if fields.subtasks and not ignore_subtasks:
                 for subtask in fields.subtasks:
-                    log(issue_key + " => has subtask => " + subtask.key)
-                    node: str = '{}->{}[color=blue][label="subtask"]'.format(
+                    # log(issue_key + " => has subtask => " + subtask.key)
+                    node = '{}->{}[color=blue][label="subtask"]'.format(
                         create_node_text(issue_key, fields),
                         create_node_text(subtask.key, subtask.fields),
                     )
@@ -275,7 +279,7 @@ def build_graph_data(
                     remove_duplicate_links(issue_key, other_link, "Relates")
                 result = process_link(fields, issue_key, other_link)
                 if result is not None:
-                    log("Appending " + result[0])
+                    # log("Appending " + result[0])
                     children.append(result[0])
                     if result[1] is not None:
                         graph.append(result[1])
@@ -287,14 +291,17 @@ def build_graph_data(
     def remove_duplicate_links(
         issue_key: str, other_link: IssueLink, link_type: str
     ) -> None:
+        linked_issue_key: str
         outward_issue = other_link.outwardIssue
         inward_issue = other_link.inwardIssue
         if outward_issue is None and inward_issue is None:
             return
-        # log(outward_issue, "\n\n", inward_issue)
-        linked_issue_key = (
-            outward_issue.key if outward_issue is not None else inward_issue.key
-        )
+
+        if outward_issue is not None:
+            linked_issue_key = outward_issue.key
+        elif inward_issue is not None:
+            linked_issue_key = inward_issue.key
+
         _ = jira.get_issue(linked_issue_key)
         if FETCHED_ISSUES[linked_issue_key].fields.issuelinks:
             for link in FETCHED_ISSUES[linked_issue_key].fields.issuelinks:
@@ -323,18 +330,19 @@ def create_graph_image(graph_data: List, file_name: str, node_shape: str) -> str
     pngp = p + "png/"
 
     with open(gvp + file_name + ".gv", "w") as gv:
-        print("Writing to " + gvp + file_name + ".gv")
+        print("\n\nGraphs written to:")
+        print("\n - " + gvp + file_name + ".gv")
         gv.write(digraph)
         gv.close()
 
     try:
         with open(pngp + file_name + ".png", "w+b") as image:
-            print("Writing to " + pngp + file_name + ".png")
+            print(" - " + pngp + file_name + ".png\n")
             binary_format = bytearray(response.content)
             image.write(binary_format)
             image.close()
     except Exception as ex:
-        log("Failed to create image: " + ex)
+        log("Failed to create image:", ex)
 
     return file_name
 
@@ -345,7 +353,7 @@ def print_graph(graph_data: List, node_shape: str) -> None:
     )
 
 
-def parse_args() -> argparse.ArgumentParser:
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-u", "--user", dest="user", default=None, help="Username to access JIRA"
@@ -502,11 +510,24 @@ def filter_duplicates(lst: List) -> List:
     def append_unique(acc, item):
         return acc if acc[-1][1] == item[1] else acc.append(item) or acc
 
-    srt_enum = sorted(enumerate(lst), key=lambda i_val: i_val[1])
+    srt_enum = sorted(enumerate(lst), key=lambda i_val: i_val[1])  # type: ignore
     return [item[1] for item in sorted(reduce(append_unique, srt_enum, [srt_enum[0]]))]
 
 
+@typing.no_type_check
 def main() -> None:
+
+    FINISHED = False
+
+    def spinner():
+        for c in itertools.cycle(["|", "/", "-", "\\"]):
+            if FINISHED:
+                break
+            sys.stdout.write("\r🐕 Fetching issues..." + c)
+            sys.stdout.flush()
+            time.sleep(0.1)
+        sys.stdout.write("\r🎉 Woohoo, it's done!       ")
+
     options = parse_args()
 
     if options.cookie is not None:
@@ -525,12 +546,15 @@ def main() -> None:
         )
         auth = (user, api_token)
 
+    t = threading.Thread(target=spinner)
+    t.start()
+
     jira = JiraSearch(options.jira_url, auth, options.no_verify_ssl)
 
     if options.jql_query is not None:
         options.issues.extend(jira.list_ids(options.jql_query))
 
-    graph = []
+    graph: List = []
     for issue in options.issues:
         graph = graph + build_graph_data(
             issue,
@@ -558,6 +582,7 @@ def main() -> None:
             else "+".join(options.issues),
             options.node_shape,
         )
+    FINISHED = True
 
 
 if __name__ == "__main__":

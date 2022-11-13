@@ -6,9 +6,10 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from pydantic import AnyUrl, BaseModel, Extra, Field  # , constr
+from pydantic import AnyUrl, BaseModel, Extra, Field
 
-import schemas.issue_links as issue_links
+from schemas.issue_links import Issuetype  # , constr
+from schemas.issue_links import IssueLink, IssueRef, Priority, Status, StatusCategory
 
 
 class Properties(BaseModel):
@@ -16,17 +17,6 @@ class Properties(BaseModel):
         extra = Extra.forbid
 
     properties: Optional[Dict[Any, str]] = None
-
-
-class StatusCategory(BaseModel):
-    class Config:
-        extra = Extra.forbid
-
-    self: Optional[str] = None
-    id: Optional[int] = None
-    key: Optional[str] = None
-    colorName: Optional[str] = None
-    name: Optional[str] = None
 
 
 class To(BaseModel):
@@ -196,19 +186,20 @@ class Editmeta(BaseModel):
 
 
 class IssueFields(BaseModel):
-    summary: Optional[str] = None
-    status: Optional[issue_links.Status] = Field(None, title="Status")
+    summary: str
+    issuetype: Issuetype
+    subtasks: List[IssueRef]  # 2
+    description: Optional[str] = None
+    issuelinks: List[IssueLink]
+    status: Status
     watcher: Optional[Dict[Any, Any]] = None
     attachment: Optional[Dict[Any, Any]] = None
-    subtasks: List[issue_links.IssueRef]
-    description: Optional[str] = None
     project: Optional[Dict[Any, Any]] = None
     comment: Optional[Dict[Any, Any]] = None
-    issuelinks: List[issue_links.IssueLink]
-    issuetype: Optional[issue_links.Issuetype] = None
     worklog: Optional[Dict[Any, Any]] = None
     updated: Optional[Dict[Any, Any]] = None
     timetracking: Optional[Dict[Any, Any]] = None
+    priority: Optional[Priority] = Field(None, title="Priority")
 
 
 class Issue(BaseModel):
@@ -218,8 +209,8 @@ class Issue(BaseModel):
     expand: Optional[str] = None
     id: Optional[str] = None
     self: Optional[AnyUrl] = None
-    key: Optional[str] = None
-    fields: Optional[IssueFields] = None
+    key: str
+    fields: IssueFields  # 1
     renderedFields: Optional[Dict[Any, Any]] = None
     properties: Optional[Properties] = Field(None, title="Properties")
     names: Optional[Dict[Any, str]] = None
@@ -232,4 +223,4 @@ class Issue(BaseModel):
     fieldsToInclude: Optional[Dict[str, Any]] = Field(None, title="Included Fields")
 
 
-LinkGroup.update_forward_refs()
+IssueFields.update_forward_refs()

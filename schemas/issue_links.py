@@ -13,8 +13,8 @@ class Type(BaseModel):
     class Config:
         extra = Extra.forbid
 
-    id: Optional[str] = None
-    name: Optional[str] = None
+    id: str
+    name: str
     inward: Optional[str] = None
     outward: Optional[str] = None
     self: Optional[AnyUrl] = None
@@ -28,7 +28,7 @@ class StatusCategory(BaseModel):
     id: Optional[int] = None
     key: Optional[str] = None
     colorName: Optional[str] = None
-    name: Optional[str] = None
+    name: str
 
 
 class Status(BaseModel):
@@ -41,7 +41,7 @@ class Status(BaseModel):
     iconUrl: Optional[str] = None
     name: Optional[str] = None
     id: Optional[str] = None
-    statusCategory: Optional[StatusCategory] = Field(None, title="Status Category")
+    statusCategory: StatusCategory
 
 
 class Issuetype(BaseModel):
@@ -74,20 +74,20 @@ class Fields(BaseModel):
     class Config:
         extra = Extra.forbid
 
-    summary: Optional[str] = None
-    status: Optional[Status] = Field(None, title="Status")
-    issuetype: Optional[Issuetype] = Field(None, title="Issue Type")
+    summary: str
+    status: Status
     priority: Optional[Priority] = Field(None, title="Priority")
+    issuetype: Optional[Issuetype] = Field(None, title="Issue Type")
 
 
 class IssueRef(BaseModel):
     class Config:
         extra = Extra.forbid
 
-    id: Optional[str] = None
-    key: Optional[str] = None
+    id: str
+    key: str
     self: Optional[AnyUrl] = None
-    fields: Optional[Fields] = Field(None, title="Fields")
+    fields: Fields
 
 
 class IssueLink(BaseModel):
@@ -96,6 +96,6 @@ class IssueLink(BaseModel):
 
     id: Optional[str] = None
     self: Optional[AnyUrl] = None
-    type: Optional[Type] = Field(None, title="Issue Link Type")
+    type: Type
     inwardIssue: Optional[IssueRef] = None
     outwardIssue: Optional[IssueRef] = None
