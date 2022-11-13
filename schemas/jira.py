@@ -6,8 +6,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
+from pydantic import AnyUrl, BaseModel, Extra, Field  # , constr
+
 import schemas.issue_links as issue_links
-from pydantic import AnyUrl, BaseModel, Extra, Field, constr
 
 
 class Properties(BaseModel):

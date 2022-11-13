@@ -8,12 +8,12 @@ import os
 import sys
 import textwrap
 from functools import reduce
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Dict, List, Literal, Optional, Tuple
 
 import requests
 from requests.models import Response
 
-from schemas.issue_links import IssueLink, IssueRef, Status
+from schemas.issue_links import IssueLink, Status
 from schemas.jira import Issue, IssueFields
 
 GOOGLE_CHART_URL = "https://chart.apis.google.com/chart"
@@ -28,10 +28,11 @@ def log(*args) -> None:
 
 class JiraSearch(object):
 
-    """This factory will create the actual method used to fetch issues from JIRA. This is really just a closure that
-    saves us having to pass a bunch of parameters all over the place all the time."""
+    """This factory will create the actual method used to fetch issues from JIRA.
+    This is really just a closure that saves us having to pass a bunch of parameters all
+    over the place all the time."""
 
-    __base_url = None
+    __base_url: Optional[str] = None
 
     def __init__(self, url, auth, no_verify_ssl) -> None:
         self.__base_url = url
@@ -72,8 +73,8 @@ class JiraSearch(object):
             )
 
     def get_issue(self, key: str) -> Issue:
-        """Given an issue key (i.e. JRA-9) return the JSON representation of it. This is the only place where we deal
-        with JIRA's REST API."""
+        """Given an issue key (i.e. JRA-9) return the JSON representation of it.
+        This is the only place where we deal with JIRA's REST API."""
         if key in FETCHED_ISSUES:
             log("Already fetched", key)
             return FETCHED_ISSUES[key]
@@ -85,11 +86,11 @@ class JiraSearch(object):
         FETCHED_ISSUES[key] = ret
         return ret
 
-    def query(self, query: str) -> Dict[Any, Any]:
+    def query(self, query: str) -> List[Issue]:
         log("Querying " + query)
         response = self.get("/search", params={"jql": query, "fields": self.fields})
-        content = response.json()
-        return content["issues"]
+        resp_json = response.json()
+        return [Issue.parse_obj(issue) for issue in resp_json["issues"]]
 
     def list_ids(self, query: str) -> List[str]:
         log("Querying " + query)
@@ -117,9 +118,9 @@ def build_graph_data(
     word_wrap: bool,
     merge_relates: bool,
 ):
-    """Given a starting image key and the issue-fetching function build up the GraphViz data representing relationships
-    between issues. This will consider both subtasks and issue links.
-    """
+    """Given a starting image key and the issue-fetching function build up the GraphViz
+    data representing relationships between issues. This will consider both subtasks
+    and issue links."""
 
     def get_status_color(status_field: Status) -> str:
         status = status_field.statusCategory.name.upper()
@@ -135,13 +136,14 @@ def build_graph_data(
         summary = fields.summary
         status = fields.status
 
-        if word_wrap == True:
+        if word_wrap is True:
             if len(summary) > MAX_SUMMARY_LENGTH:
                 # split the summary into multiple lines adding a \n to each line
                 summary = textwrap.fill(fields.summary, MAX_SUMMARY_LENGTH)
         else:
-            # truncate long labels with "...", but only if the three dots are replacing more than two characters
-            # -- otherwise the truncated label would be taking more space than the original.
+            # truncate long labels with "...", but only if the three dots are replacing
+            # more than two characters -- otherwise the truncated label would be taking
+            # more space than the original.
             if len(summary) > MAX_SUMMARY_LENGTH + 2:
                 summary = fields.summary[:MAX_SUMMARY_LENGTH] + "..."
         summary = summary.replace('"', '\\"')
@@ -248,11 +250,8 @@ def build_graph_data(
 
         if not ignore_subtasks:
             if fields.issuetype.name == "Epic" and not ignore_epic:
-                issues: List[Dict[str, Any]] = jira.query(
-                    '"Epic Link" = "%s"' % issue_key
-                )
-                for subtask_dict in issues:
-                    subtask = IssueRef.parse_obj(subtask_dict)
+                issues: List[Issue] = jira.query('"Epic Link" = "%s"' % issue_key)
+                for subtask in issues:
                     log(subtask.key + " => references epic => " + issue_key)
                     node = "{}->{}[color=orange]".format(
                         create_node_text(issue_key, fields),
@@ -310,11 +309,10 @@ def build_graph_data(
 
 
 def create_graph_image(graph_data: List, file_name: str, node_shape: str) -> str:
-    """Given a formatted blob of graphviz chart data[1], make the actual request to Google
-    and store the resulting image to disk.
+    """Given a formatted blob of graphviz chart data[1], make the actual request to
+    Google and store the resulting image to disk.
 
-    [1]: http://code.google.com/apis/chart/docs/gallery/graphviz.html
-    """
+    [1]: http://code.google.com/apis/chart/docs/gallery/graphviz.html"""
     digraph = "digraph{node [shape=" + node_shape + "];%s}" % ";".join(graph_data)
 
     response = requests.post(GOOGLE_CHART_URL, data={"cht": "gv", "chl": digraph})
