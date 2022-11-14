@@ -5,7 +5,7 @@ Graph visualizer for dependencies between JIRA tickets (with subtasks and issue 
 * Uses JIRA rest API v2 for fetching information on issues.
 * Uses [Google Chart API](https://developers.google.com/chart/) for graphical presentation.
 
-![Example graph](examples/issue_graph_new.png)
+![Example graph](examples/issue_graph_new.svg)
 
 <details>
   <summary>Requirements</summary>
@@ -65,7 +65,7 @@ Graphs written to:
 
 ---
 
-![Example graph](examples/issue_graph_new.png)
+![Example graph](examples/issue_graph_new.svg)
 
 </details>
 
