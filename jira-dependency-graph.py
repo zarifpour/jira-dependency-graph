@@ -190,7 +190,7 @@ def build_graph_data(
             # log("Skipping " + linked_issue.key + " - linked key is Closed")
             return None
 
-        if linked_issue.key not in includes:
+        if includes not in linked_issue.key:
             return None
 
         if link.type.name.strip() in excludes:
