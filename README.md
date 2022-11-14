@@ -5,12 +5,15 @@ Graph visualizer for dependencies between JIRA tickets (with subtasks and issue 
 * Uses JIRA rest API v2 for fetching information on issues.
 * Uses [Google Chart API](https://developers.google.com/chart/) for graphical presentation.
 
+![Example graph](examples/issue_graph_new.png)
+
 <details>
   <summary>Requirements</summary>
 
 * Python 2.7+ or Python 3+
-* [poetry](https://github.com/python-poetry/poetry)
+* [poetry](https://github.com/python-poetry/poetry) (recommended)
 * [requests](https://github.com/psf/requests)
+* ...
 
 </details>
 
@@ -48,34 +51,21 @@ python jira-dependency-graph.py --user=<JIRA_EMAIL> --password=<JIRA_API_KEY> --
   <summary>Examples</summary>
 
 ```shell
-python jira-dependency-graph.py --user=daniel.zarifpour@simbachain.com --password=A11P22I33K44E55Y --jira=https://simbachain.atlassian.net BLK-899
+python jira-dependency-graph.py --user=daniel.zarifpour@simbachain.com --password=A11P22I33K44E55Y --jira=https://simbachain.atlassian.net JIRA-899
 
-Fetching BLK-899
-BLK-899 <= is blocked by <= BLK-3853
-BLK-899 <= is blocked by <= BLK-3968
-BLK-899 <= is blocked by <= BLK-3126
-BLK-899 <= is blocked by <= BLK-2977
-Fetching BLK-3853
-BLK-3853 => blocks => BLK-899
-BLK-3853 <= relates to <= BLK-3968
-Fetching BLK-3968
-BLK-3968 => blocks => BLK-899
-BLK-3968 => relates to => BLK-3853
-Fetching BLK-3126
-BLK-3126 => blocks => BLK-899
-BLK-3126 => testing discovered => BLK-3571
-Fetching BLK-3571
-BLK-3571 <= discovered while testing <= BLK-3126
-Fetching BLK-2977
-BLK-2977 => blocks => BLK-899
+🐕 Fetching issues.../
 
-Writing to /path/to/jira-dependency-graph/out/gv/BLK-899.gv
-Writing to /path/to/jira-dependency-graph/out/png/BLK-899.png
+Graphs written to:
+
+ - /path/to/jira_tree/out/gv/JIRA-899.gv
+ - /path/to/jira_tree/out/png/JIRA-899.png
+
+🎉 Woohoo, it's done!       %
 ```
 
 ---
 
-![Example graph](examples/issue_graph_complex.png)
+![Example graph](examples/issue_graph_new.png)
 
 </details>
 
@@ -96,16 +86,16 @@ Writing to /path/to/jira-dependency-graph/out/png/BLK-899.png
 
 ## Contributing
 
-To make this tool even more awesome, consider some of the following tips and guidelines to add your contributions.
+To make this tool even more awesome, consider some of the following when contributing.
 
 ### Schemas
 
-Schemas makes data much easier to consume... To add a schema from the JIRA API:
+Schemas makes data much easier to consume... To add a schema from the [JIRA API](https://docs.atlassian.com/software/jira/docs/api/REST/9.3.1/#api/2/):
 
-1. Copy-paste one of the JIRA json schemas into `schemas/json/<SCHEMA>.json` from this [URL](https://docs.atlassian.com/software/jira/docs/api/REST/9.3.1/#api/2/).
-2. Autogenerate the pydantic schema with the datamodel-codegen tool (see code sample below).
+1. Copy-paste one of the [JIRA json schemas](https://docs.atlassian.com/software/jira/docs/api/REST/9.3.1/#api/2/issue-getIssue) into `schemas/json/<SCHEMA>.json`.
+2. Autogenerate the pydantic schemas with the [datamodel-codegen](https://github.com/koxudaxi/datamodel-code-generator) tool (see code sample below).
 3. Replace `constr(...)` - in most cases - with `Any` from the typing package.
-4. Play around with it and update as necessary.
+4. Try fetching and processing some data from the API and update the schemas as you learn more about them.
 
 ```shell
 datamodel-codegen  --input schemas/json/<SCHEMA>.json --input-file-type jsonschema --output schemas/<SCHEMA>.py
@@ -120,9 +110,9 @@ The pre-commit ensures code quality. Several checks are done upon each commit, i
 * flake8
 * isort
 
-Ensure these requirements are satisfied before committing.
+If these requirements are not satisfied, you will not be able to commit.
 
-Alternatively, if you would like to ignore the pre-commit checks, use the following command:
+Alternatively, if the pre-commit checks are interrupting your workflow, use the following command:
 
 ```shell
 git commit . -m '<COMMIT_MSG>' --no-verify
@@ -130,4 +120,13 @@ git commit . -m '<COMMIT_MSG>' --no-verify
 
 ## Notes
 
-This is a fork of [pawelrychlik/jira-dependency-graph](https://github.com/pawelrychlik/jira-dependency-graph), please refer to that repository for complete documentation. The old repo does not indicate that you must use your API key instead of your password to authenticate and enables duplicated relationships by default (i.e. nodes that are connected may have the relationship "blocks" and "is blocked by" pointing to each other). You may use that repo and exclude specific links, but this repo excludes some of them by default.
+This is a fork of [pawelrychlik/jira-dependency-graph](https://github.com/pawelrychlik/jira-dependency-graph), please refer to that repository for complete documentation. The old repo's method of authentication (using a password) has been deprecated and you must now use your API key instead. It also enables duplicated relationships by default (i.e. nodes that are connected may have the relationship "blocks" and "is blocked by" pointing to each other). You may continue to use that repo and exclude these types of duplicated links - this repo excludes some of them by default.
+
+### Changes
+
+* Documented auth (API Key)
+* Opinionated exclusion of duplicate edges
+* Added poetry for simplified virtual environment management
+* Added pydantic schemas for clearer data parsing and validation
+* Added mypy typing to verify soundness of types
+* Added other code quality stuff...
