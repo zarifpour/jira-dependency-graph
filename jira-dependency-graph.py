@@ -108,12 +108,12 @@ class JiraSearch(object):
 
 
 def build_graph_data(
-    start_issue_key,
-    jira,
+    start_issue_key: str,
+    jira: JiraSearch,
     excludes: List[str],
     show_directions: List[Literal["inward", "outward"]],
     directions: List[Literal["inward", "outward"]],
-    includes,
+    includes: str,
     issue_excludes: List[str],
     ignore_closed: bool,
     ignore_epic: bool,
@@ -190,7 +190,7 @@ def build_graph_data(
             # log("Skipping " + linked_issue.key + " - linked key is Closed")
             return None
 
-        if includes not in linked_issue.key:
+        if linked_issue.key not in includes:
             return None
 
         if link.type.name.strip() in excludes:
@@ -236,8 +236,14 @@ def build_graph_data(
 
     def walk(issue_key: str, graph: List) -> Union[Issue, List[Any]]:
         """issue is the JSON representation of the issue"""
-        issue: Issue = jira.get_issue(issue_key)
         children = []
+
+        try:
+            issue: Issue = jira.get_issue(issue_key)
+        except Exception as ex:
+            log("\n\n", ex)
+            return []
+
         fields = issue.fields
         seen.append(issue_key)
 
@@ -556,7 +562,7 @@ def main() -> None:
 
     graph: List = []
     for issue in options.issues:
-        graph = graph + build_graph_data(
+        graph_data = build_graph_data(
             issue,
             jira,
             options.excludes,
@@ -571,6 +577,11 @@ def main() -> None:
             options.word_wrap,
             options.merge_relates,
         )
+        if not graph_data:
+            log("\nFailed to fetch data for:", issue, "\nWas it deleted?\n")
+            FINISHED = True
+            exit(1)
+        graph = graph + graph_data
 
     if options.local:
         print_graph(filter_duplicates(graph), options.node_shape)
