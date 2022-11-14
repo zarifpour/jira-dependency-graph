@@ -56,6 +56,7 @@ class Issuetype(BaseModel):
     subtask: bool
     avatarId: Optional[int] = None
     hierarchyLevel: Optional[int] = None
+    entityId: Optional[str] = None
 
 
 class Priority(BaseModel):
