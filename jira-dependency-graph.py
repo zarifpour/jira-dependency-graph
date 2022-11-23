@@ -260,7 +260,11 @@ def build_graph_data(
         if not ignore_subtasks:
             subtask: Union[Issue, IssueRef]
             if fields.issuetype.name == "Epic" and not ignore_epic:
-                issues: List[Issue] = jira.query('"Epic Link" = "%s"' % issue_key)
+                issues: List[Issue] = jira.query(
+                    '"Epic Link" = "%s" \
+                    OR "Parent" = "%s"'
+                    % (issue_key, issue_key)
+                )
                 for subtask in issues:
                     # log(subtask.key + " => references epic => " + issue_key)
                     node: str = "{}->{}[color=orange]".format(
