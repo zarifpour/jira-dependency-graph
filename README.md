@@ -109,6 +109,7 @@ The pre-commit ensures code quality. Several checks are done upon each commit, i
 * mypy
 * flake8
 * isort
+* [conventional-commit](https://github.com/nebbles/gitcommit)
 
 If these requirements are not satisfied, you will not be able to commit.
 
@@ -117,6 +118,18 @@ Alternatively, if the pre-commit checks are interrupting your workflow, use the 
 ```shell
 git commit . -m '<COMMIT_MSG>' --no-verify
 ```
+
+#### Conventional Commit
+
+This template enforces the [Conventional Commits](https://www.conventionalcommits.org/) standard for git commit messages. This is a lightweight convention that creates an explicit commit history, which makes it easier to write automated tools on top of.
+
+To use the CLI run the command:
+
+```sh
+gitcommit
+```
+
+If you are using VS Code the extension [Commitizen Support](https://github.com/KnisterPeter/vscode-commitizen.git) streamlines this process.
 
 ## Notes
 

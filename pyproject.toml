@@ -16,6 +16,7 @@ datamodel-code-generator = "^0.13.5"
 isort = "^5.10.1"
 pre-commit = "^2.20.0"
 flake8 = "^5.0.4"
+conventional-commit = "^0.4.2"
 
 [tool.poetry.dev-dependencies]
 
