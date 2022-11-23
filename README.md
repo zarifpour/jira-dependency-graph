@@ -143,3 +143,4 @@ This is a fork of [pawelrychlik/jira-dependency-graph](https://github.com/pawelr
 * Added pydantic schemas for clearer data parsing and validation
 * Added mypy typing to verify soundness of types
 * Added other code quality stuff...
+* Added support for Epics in team-managed projects
