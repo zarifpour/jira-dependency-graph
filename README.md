@@ -103,12 +103,12 @@ datamodel-codegen  --input schemas/json/<SCHEMA>.json --input-file-type jsonsche
 
 ### Pre-commit
 
-The pre-commit ensures code quality. Several checks are done upon each commit, including:
+The [pre-commit](https://pre-commit.com/) ensures code quality. Several checks are done upon each commit, including:
 
-* black
-* mypy
-* flake8
-* isort
+* [black](https://github.com/psf/black)
+* [mypy](https://github.com/python/mypy)
+* [flake8](https://github.com/PyCQA/flake8)
+* [isort](https://github.com/PyCQA/isort)
 * [conventional-commit](https://github.com/nebbles/gitcommit)
 
 If these requirements are not satisfied, you will not be able to commit.
@@ -121,9 +121,9 @@ git commit . -m '<COMMIT_MSG>' --no-verify
 
 #### Conventional Commit
 
-This template enforces the [Conventional Commits](https://www.conventionalcommits.org/) standard for git commit messages. This is a lightweight convention that creates an explicit commit history, which makes it easier to write automated tools on top of.
+The [pre-commit](https://pre-commit.com/) enforces the [Conventional Commits](https://www.conventionalcommits.org/) standard for git commit messages. This is a lightweight convention that creates an explicit commit history, which makes it easier to write automated tools on top of.
 
-To use the CLI run the command:
+To use the commit CLI run the command:
 
 ```sh
 gitcommit
