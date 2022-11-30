@@ -356,6 +356,26 @@ def create_graph_image(graph_data: List, file_name: str, node_shape: str) -> str
 
     return file_name
 
+# save the graph file
+def save_gv_graph(graph_data: List, file_name: str, node_shape: str) -> str:
+    digraph = "digraph{node [shape=" + node_shape + "];%s}" % ";".join(graph_data)
+
+    d = os.path.dirname(__file__)
+    p = d + "/out/"
+    gvp = p + "gv/"
+
+    try:
+        with open(gvp + file_name + ".gv", "w") as gv:
+            print("\n\nGraphs written to:")
+            print("\n - " + gvp + file_name + ".gv")
+            gv.write(digraph)
+            gv.close()
+
+    except Exception as ex:
+        log("Failed to create graph file:", ex)
+
+    return file_name
+
 
 def print_graph(graph_data: List, node_shape: str) -> None:
     print(
@@ -410,6 +430,13 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         default=False,
         help="Render graphviz code to stdout",
+    )
+    parser.add_argument(
+        "-g",
+        "--gvonly",
+        action="store_true",
+        default=False,
+        help="store only graphviz code to file",
     )
     parser.add_argument(
         "-e",
@@ -590,15 +617,25 @@ def main() -> None:
     if options.local:
         print_graph(filter_duplicates(graph), options.node_shape)
     else:
-        create_graph_image(
-            filter_duplicates(graph),
-            options.image_file
-            if options.image_file != "issue_graph"
-            else "+".join(options.issues),
-            options.node_shape,
-        )
-    FINISHED = True
+        if options.gvonly: 
 
+            save_gv_graph(
+                filter_duplicates(graph),
+                options.image_file
+                if options.image_file != "issue_graph"
+                else "+".join(options.issues),
+                options.node_shape,
+            )
+        else:
+            create_graph_image(
+                filter_duplicates(graph),
+                options.image_file
+                if options.image_file != "issue_graph"
+                else "+".join(options.issues),
+                options.node_shape,
+            )
+    FINISHED = True
+    
 
 if __name__ == "__main__":
     main()
