@@ -38,11 +38,13 @@ class JiraSearch(object):
 
     __base_url: Optional[str] = None
 
-    def __init__(self, url, auth, no_verify_ssl) -> None:
+    def __init__(self, url, auth, no_verify_ssl, use_jsessionid, use_bearer) -> None:
         self.__base_url = url
         self.url = url + "/rest/api/latest"
         self.auth = auth
         self.no_verify_ssl = no_verify_ssl
+        self.use_bearer = use_bearer
+        self.use_jsessionid = use_jsessionid
         self.fields = ",".join(
             [
                 "key",
@@ -56,16 +58,31 @@ class JiraSearch(object):
         )
 
     def get(self, uri: str, params={}) -> Response:
-        headers = {"Content-Type": "application/json"}
+
+        # check if bearer token shall be used and insert it into header
+        if (self.use_bearer): 
+            headers = {"Content-Type": "application/json",
+                       "Authorization" : "Bearer "+ self.auth}
+        else:
+            headers = {"Content-Type": "application/json"}
+
         url = self.url + uri
 
-        if isinstance(self.auth, str):
+        
+        if isinstance(self.auth, str) and (self.use_jsessionid):
             return requests.get(
                 url,
                 params=params,
                 cookies={"JSESSIONID": self.auth},
                 headers=headers,
                 verify=self.no_verify_ssl,
+            )
+        elif (self.use_bearer):
+            return requests.get(
+                url,
+                params=params,
+                headers=headers,
+                verify=(not self.no_verify_ssl),
             )
         else:
             return requests.get(
@@ -403,6 +420,13 @@ def parse_args() -> argparse.Namespace:
         help="JSESSIONID session cookie value",
     )
     parser.add_argument(
+        "-b",
+        "--bearer",
+        dest="bearer",
+        default=None,
+        help="Bearer Token value (no user req)",
+    )
+    parser.add_argument(
         "-N",
         "--no-auth",
         dest="no_auth",
@@ -567,9 +591,18 @@ def main() -> None:
 
     options = parse_args()
 
+    # for better overview, use a state variable for token or sessionid to avoid confusion
+    use_bearer = False
+    use_jsessionid = False
+
     if options.cookie is not None:
         # Log in with browser and use --cookie=ABCDEF012345 commandline argument
         auth = options.cookie
+        use_jsessionid = True
+    elif options.bearer is not None:
+        # use the bearer token
+        auth = options.bearer
+        use_bearer = True
     elif options.no_auth is True:
         # Don't use authentication when it's not needed
         auth = None
@@ -586,7 +619,7 @@ def main() -> None:
     t = threading.Thread(target=spinner)
     t.start()
 
-    jira = JiraSearch(options.jira_url, auth, options.no_verify_ssl)
+    jira = JiraSearch(options.jira_url, auth, options.no_verify_ssl, use_jsessionid, use_bearer)
 
     if options.jql_query is not None:
         options.issues.extend(jira.list_ids(options.jql_query))
