@@ -144,3 +144,8 @@ This is a fork of [pawelrychlik/jira-dependency-graph](https://github.com/pawelr
 * Added mypy typing to verify soundness of types
 * Added other code quality stuff...
 * Added support for Epics in team-managed projects
+
+### changes by jlinkohr
+* added bearer token 
+* added storage of gv files without using google api
+* fixed Dockerfile
