@@ -144,8 +144,34 @@ This is a fork of [pawelrychlik/jira-dependency-graph](https://github.com/pawelr
 * Added mypy typing to verify soundness of types
 * Added other code quality stuff...
 * Added support for Epics in team-managed projects
+* Added bearer token
+* Added storage of gv files without using google api
+* Fixed Dockerfile
 
-### changes by jlinkohr
-* added bearer token 
-* added storage of gv files without using google api
-* fixed Dockerfile
+### Contributors
+
+<details>
+  <summary>
+    Everyone from <a href="https://github.com/pawelrychlik/jira-dependency-graph" target="_blank">pawelrychlik/jira-dependency-graph</a>
+  </summary>
+  <ul>
+    <li>Thank you 🌈</li>
+  </ul>
+</details>
+
+<details>
+  <summary>
+    Changes by <a href="https://github.com/jlinkohr" target="_blank">jlinkohr</a>
+  </summary>
+  <ul>
+    <li>Added bearer token</li>
+    <li>Added storage of gv files without using google api</li>
+    <li>Fixed Dockerfile</li>
+  </ul>
+</details>
+
+---
+
+<a href = "https://github.com/Tanu-N-Prabhu/Python/graphs/contributors">
+  <img src = "https://contrib.rocks/image?repo=zarifpour/jira-dependency-graph"/>
+</a>
