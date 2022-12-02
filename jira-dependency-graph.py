@@ -60,15 +60,16 @@ class JiraSearch(object):
     def get(self, uri: str, params={}) -> Response:
 
         # check if bearer token shall be used and insert it into header
-        if (self.use_bearer): 
-            headers = {"Content-Type": "application/json",
-                       "Authorization" : "Bearer "+ self.auth}
+        if self.use_bearer:
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + self.auth,
+            }
         else:
             headers = {"Content-Type": "application/json"}
 
         url = self.url + uri
 
-        
         if isinstance(self.auth, str) and (self.use_jsessionid):
             return requests.get(
                 url,
@@ -77,7 +78,7 @@ class JiraSearch(object):
                 headers=headers,
                 verify=self.no_verify_ssl,
             )
-        elif (self.use_bearer):
+        elif self.use_bearer:
             return requests.get(
                 url,
                 params=params,
@@ -373,6 +374,7 @@ def create_graph_image(graph_data: List, file_name: str, node_shape: str) -> str
 
     return file_name
 
+
 # save the graph file
 def save_gv_graph(graph_data: List, file_name: str, node_shape: str) -> str:
     digraph = "digraph{node [shape=" + node_shape + "];%s}" % ";".join(graph_data)
@@ -591,7 +593,8 @@ def main() -> None:
 
     options = parse_args()
 
-    # for better overview, use a state variable for token or sessionid to avoid confusion
+    # for better overview, use a state variable for token
+    # or sessionid to avoid confusion
     use_bearer = False
     use_jsessionid = False
 
@@ -619,7 +622,9 @@ def main() -> None:
     t = threading.Thread(target=spinner)
     t.start()
 
-    jira = JiraSearch(options.jira_url, auth, options.no_verify_ssl, use_jsessionid, use_bearer)
+    jira = JiraSearch(
+        options.jira_url, auth, options.no_verify_ssl, use_jsessionid, use_bearer
+    )
 
     if options.jql_query is not None:
         options.issues.extend(jira.list_ids(options.jql_query))
@@ -650,7 +655,7 @@ def main() -> None:
     if options.local:
         print_graph(filter_duplicates(graph), options.node_shape)
     else:
-        if options.gvonly: 
+        if options.gvonly:
 
             save_gv_graph(
                 filter_duplicates(graph),
@@ -668,7 +673,7 @@ def main() -> None:
                 options.node_shape,
             )
     FINISHED = True
-    
+
 
 if __name__ == "__main__":
     main()
