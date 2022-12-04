@@ -135,7 +135,7 @@ If you are using VS Code the extension [Commitizen Support](https://github.com/K
 
 ## Notes
 
-This is a fork of [pawelrychlik/jira-dependency-graph](https://github.com/pawelrychlik/jira-dependency-graph), please refer to that repository for complete documentation. The old repo's method of authentication (using a password) has been deprecated and you must now use your API key instead. It also enables duplicated relationships by default (i.e. nodes that are connected may have the relationship "blocks" and "is blocked by" pointing to each other). You may continue to use that repo and exclude these types of duplicated links - this repo excludes some of them by default.
+This is a fork of [pawelrychlik/jira-dependency-graph](https://github.com/pawelrychlik/jira-dependency-graph), please refer to that repository for complete documentation (some features may be deprecated). The old repo's method of authentication (using a password) has been deprecated and you must now use your API key instead. It also enables duplicated relationships by default (i.e. nodes that are connected may have the relationship "blocks" and "is blocked by" pointing to each other). You may continue to use that repo and exclude these types of duplicated links - this repo excludes some of them by default.
 
 ### Changes
 
