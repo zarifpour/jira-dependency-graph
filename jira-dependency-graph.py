@@ -11,6 +11,7 @@ import textwrap
 import threading
 import time
 import typing
+from enum import Enum
 from functools import reduce
 from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
@@ -38,11 +39,13 @@ class JiraSearch(object):
 
     __base_url: Optional[str] = None
 
-    def __init__(self, url, auth, no_verify_ssl) -> None:
+    def __init__(self, url, auth, no_verify_ssl, use_jsessionid, use_bearer) -> None:
         self.__base_url = url
         self.url = url + "/rest/api/latest"
         self.auth = auth
         self.no_verify_ssl = no_verify_ssl
+        self.use_bearer = use_bearer
+        self.use_jsessionid = use_jsessionid
         self.fields = ",".join(
             [
                 "key",
@@ -57,9 +60,13 @@ class JiraSearch(object):
 
     def get(self, uri: str, params={}) -> Response:
         headers = {"Content-Type": "application/json"}
+
+        if self.use_bearer:
+            headers["Authorization"] = "Bearer " + self.auth
+
         url = self.url + uri
 
-        if isinstance(self.auth, str):
+        if isinstance(self.auth, str) and (self.use_jsessionid):
             return requests.get(
                 url,
                 params=params,
@@ -71,9 +78,9 @@ class JiraSearch(object):
             return requests.get(
                 url,
                 params=params,
-                auth=self.auth,
                 headers=headers,
                 verify=(not self.no_verify_ssl),
+                auth=None if self.use_bearer else self.auth,
             )
 
     def get_issue(self, key: str) -> Issue:
@@ -325,36 +332,94 @@ def build_graph_data(
     return walk(start_issue_key, [])
 
 
-def create_graph_image(graph_data: List, file_name: str, node_shape: str) -> str:
-    """Given a formatted blob of graphviz chart data[1], make the actual request to
-    Google and store the resulting image to disk.
+class FileTypes(Enum):
+    GRAPHVIZ = "gv"
+    PNG = "png"
+    ALL = "all"
+
+
+def save_graph(
+    graph_data: List,
+    file_name: str,
+    node_shape: str,
+    file_type: FileTypes,
+) -> List[str]:
+    """Given a formatted blob of graphviz chart data:
+        - Create Graphviz file (.gv)
+        - Create image from Google API (.png) [1]
+
+    Based on the `file_type` provided.
 
     [1]: http://code.google.com/apis/chart/docs/gallery/graphviz.html"""
     digraph = "digraph{node [shape=" + node_shape + "];%s}" % ";".join(graph_data)
-
-    response = requests.post(GOOGLE_CHART_URL, data={"cht": "gv", "chl": digraph})
 
     d = os.path.dirname(__file__)
     p = d + "/out/"
     gvp = p + "gv/"
     pngp = p + "png/"
 
-    with open(gvp + file_name + ".gv", "w") as gv:
-        print("\n\nGraphs written to:")
-        print("\n - " + gvp + file_name + ".gv")
-        gv.write(digraph)
-        gv.close()
+    graph_paths = []
 
+    if file_type == FileTypes.ALL or file_type == FileTypes.GRAPHVIZ:
+        graph_path_gv = save_graph_gv(digraph=digraph, file_name=file_name, path=gvp)
+        graph_paths.append(graph_path_gv)
+    if file_type == FileTypes.ALL or file_type == FileTypes.PNG:
+        graph_path_png = save_graph_png(digraph=digraph, file_name=file_name, path=pngp)
+        graph_paths.append(graph_path_png)
+
+    print("\n\n\nGraph(s) written to:")
+    print("\n")
+    for path in graph_paths:
+        print(f" - {path}")
+    print("\n")
+
+    return graph_paths
+
+
+def save_graph_gv(digraph: str, file_name: str, path: str) -> str:
+    """Save graph as graphviz file
+
+    Args:
+        digraph (str): Code to generate graph
+        file_name (str): Name of file
+        path (str): File path to save
+
+    Returns:
+        str: Full path to file
+    """
     try:
-        with open(pngp + file_name + ".png", "w+b") as image:
-            print(" - " + pngp + file_name + ".png\n")
+        with open(path + file_name + ".gv", "w") as gv:
+            full_path = path + file_name + ".gv"
+            gv.write(digraph)
+            gv.close()
+    except Exception as ex:
+        log("Failed to create graph file:", ex)
+
+    return full_path
+
+
+def save_graph_png(digraph: str, file_name: str, path: str) -> str:
+    """Google API: Save graph as image (png)
+
+    Args:
+        digraph (str): Code to generate graph
+        file_name (str): Name of file
+        path (str): File path to save
+
+    Returns:
+        str: Full path to file
+    """
+    try:
+        response = requests.post(GOOGLE_CHART_URL, data={"cht": "gv", "chl": digraph})
+        with open(path + file_name + ".png", "w+b") as image:
+            full_path = path + file_name + ".gv"
             binary_format = bytearray(response.content)
             image.write(binary_format)
             image.close()
     except Exception as ex:
         log("Failed to create image:", ex)
 
-    return file_name
+    return full_path
 
 
 def print_graph(graph_data: List, node_shape: str) -> None:
@@ -381,6 +446,13 @@ def parse_args() -> argparse.Namespace:
         dest="cookie",
         default=None,
         help="JSESSIONID session cookie value",
+    )
+    parser.add_argument(
+        "-b",
+        "--bearer",
+        dest="bearer",
+        default=None,
+        help="Bearer Token value (no user req)",
     )
     parser.add_argument(
         "-N",
@@ -410,6 +482,20 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         default=False,
         help="Render graphviz code to stdout",
+    )
+    parser.add_argument(
+        "-gv",
+        "--gvonly",
+        action="store_true",
+        default=False,
+        help="Store only graphviz code to file",
+    )
+    parser.add_argument(
+        "-png",
+        "--pngonly",
+        action="store_true",
+        default=False,
+        help="Store only  to file",
     )
     parser.add_argument(
         "-e",
@@ -540,9 +626,19 @@ def main() -> None:
 
     options = parse_args()
 
+    # for better overview, use a state variable for token
+    # or sessionid to avoid confusion
+    use_bearer = False
+    use_jsessionid = False
+
     if options.cookie is not None:
         # Log in with browser and use --cookie=ABCDEF012345 commandline argument
         auth = options.cookie
+        use_jsessionid = True
+    elif options.bearer is not None:
+        # use the bearer token
+        auth = options.bearer
+        use_bearer = True
     elif options.no_auth is True:
         # Don't use authentication when it's not needed
         auth = None
@@ -559,7 +655,9 @@ def main() -> None:
     t = threading.Thread(target=spinner)
     t.start()
 
-    jira = JiraSearch(options.jira_url, auth, options.no_verify_ssl)
+    jira = JiraSearch(
+        options.jira_url, auth, options.no_verify_ssl, use_jsessionid, use_bearer
+    )
 
     if options.jql_query is not None:
         options.issues.extend(jira.list_ids(options.jql_query))
@@ -590,12 +688,19 @@ def main() -> None:
     if options.local:
         print_graph(filter_duplicates(graph), options.node_shape)
     else:
-        create_graph_image(
-            filter_duplicates(graph),
-            options.image_file
+        file_type = FileTypes.ALL
+        if options.gvonly:
+            file_type = FileTypes.GRAPHVIZ
+        elif options.pngonly:
+            file_type = FileTypes.PNG
+
+        save_graph(
+            graph_data=filter_duplicates(graph),
+            file_name=options.image_file
             if options.image_file != "issue_graph"
             else "+".join(options.issues),
-            options.node_shape,
+            node_shape=options.node_shape,
+            file_type=file_type,
         )
     FINISHED = True
 

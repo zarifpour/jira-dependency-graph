@@ -80,6 +80,8 @@ Graphs written to:
 | Use JQL           | `--jql` | `... --jql 'project = Blockchain'` | Instead of passing issue-keys, a Jira Query Language command can be passed.
 | Ignore closed     | `--ignore-closed`         | `... JIRA-8 --ignore-closed` | Ignore all tickets that are closed. |
 | No merge "relates to"  | `--no-merge-relates`      | `... JIRA-8 --no-merge-relates` | Do not merge edges of related issues (creates cycle). |
+| PNG only  | `--png`      | `... JIRA-8 --png` | Save graph as ".png" only (Google API). |
+| Graphviz only  | `--gv`      | `... JIRA-8 --gv` | Save graph as ".gv" only (does not hit Google API). |
 
 > **Note**
 > `...` is equivalent to `python jira-dependency-graph.py --user=<JIRA_EMAIL> --password=<JIRA_API_KEY> --jira=https://<YOUR_ORGANIZATION>.atlassian.net`
@@ -144,3 +146,34 @@ This is a fork of [pawelrychlik/jira-dependency-graph](https://github.com/pawelr
 * Added mypy typing to verify soundness of types
 * Added other code quality stuff...
 * Added support for Epics in team-managed projects
+* Added bearer token
+* Added storage of gv files without using google api
+* Fixed Dockerfile
+
+### Contributors
+
+<details>
+  <summary>
+    Everyone from <a href="https://github.com/pawelrychlik/jira-dependency-graph" target="_blank">pawelrychlik/jira-dependency-graph</a>
+  </summary>
+  <ul>
+    <li>Thank you 🌈</li>
+  </ul>
+</details>
+
+<details>
+  <summary>
+    Changes by <a href="https://github.com/jlinkohr" target="_blank">jlinkohr</a>
+  </summary>
+  <ul>
+    <li>Added bearer token</li>
+    <li>Added storage of gv files without using google api</li>
+    <li>Fixed Dockerfile</li>
+  </ul>
+</details>
+
+---
+
+<a href = "https://github.com/Tanu-N-Prabhu/Python/graphs/contributors">
+  <img src = "https://contrib.rocks/image?repo=zarifpour/jira-dependency-graph"/>
+</a>
