@@ -80,6 +80,8 @@ Graphs written to:
 | Use JQL           | `--jql` | `... --jql 'project = Blockchain'` | Instead of passing issue-keys, a Jira Query Language command can be passed.
 | Ignore closed     | `--ignore-closed`         | `... JIRA-8 --ignore-closed` | Ignore all tickets that are closed. |
 | No merge "relates to"  | `--no-merge-relates`      | `... JIRA-8 --no-merge-relates` | Do not merge edges of related issues (creates cycle). |
+| PNG only  | `--png`      | `... JIRA-8 --png` | Save graph as ".png" only (Google API). |
+| Graphviz only  | `--gv`      | `... JIRA-8 --gv` | Save graph as ".gv" only (does not hit Google API). |
 
 > **Note**
 > `...` is equivalent to `python jira-dependency-graph.py --user=<JIRA_EMAIL> --password=<JIRA_API_KEY> --jira=https://<YOUR_ORGANIZATION>.atlassian.net`
