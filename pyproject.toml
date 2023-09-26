@@ -2,12 +2,12 @@
 name = "zarifpour:jira-dependency-graph"
 version = "0.1.0"
 description = "Graph visualizer for JIRA ticket dependencies"
-authors = ["Daniel Zarifpour <daniel@zarif.pro>"]
+authors = ["Daniel Zarifpour <z@rifpour.xyz>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-requests = "2.22"
+requests = "^2.22"
 black = "^22.10.0"
 mypy = "^0.990"
 types-requests = "^2.28.11"
