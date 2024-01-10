@@ -1,8 +1,8 @@
 .venv
 .vscode
 _*
-out/gv/*.gv
-out/png/*.png
+out/**/*.gv
+out/**/*.png
 .mypy_cache
 
 # OS / IDE specific

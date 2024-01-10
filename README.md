@@ -82,6 +82,7 @@ Graphs written to:
 | No merge "relates to"  | `--no-merge-relates`      | `... JIRA-8 --no-merge-relates` | Do not merge edges of related issues (creates cycle). |
 | PNG only  | `--png`      | `... JIRA-8 --png` | Save graph as ".png" only (Google API). |
 | Graphviz only  | `--gv`      | `... JIRA-8 --gv` | Save graph as ".gv" only (does not hit Google API). |
+| Filename               | `--file`                  | `... JIRA-8 --file=graphimg`         | Save output (whether .gv & .png or .png only) as a pre-defined file-name. Otherwise it will be saved as a concatinated list of JIRA issue keys (which may result in an error, if the list is too big: JIS-1+JIS-2+JIS-3....png) |
 
 > **Note**
 > `...` is equivalent to `python jira-dependency-graph.py --user=<JIRA_EMAIL> --password=<JIRA_API_KEY> --jira=https://<YOUR_ORGANIZATION>.atlassian.net`
