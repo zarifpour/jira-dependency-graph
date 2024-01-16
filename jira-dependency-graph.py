@@ -108,7 +108,8 @@ class JiraSearch(object):
         response = self.get(
             "/search", params={"jql": query, "fields": "key", "maxResults": 100}
         )
-        return [issue["key"] for issue in response.json()["issues"]]
+        json_issues = response.json()
+        return [issue["key"] for issue in json_issues["issues"]]
 
     def get_issue_uri(self, issue_key: str) -> str:
         return self.__base_url + "/browse/" + issue_key  # type: ignore
@@ -387,9 +388,11 @@ def save_graph_gv(digraph: str, file_name: str, path: str) -> str:
     Returns:
         str: Full path to file
     """
+
+    full_path = path + file_name + ".gv"
+
     try:
-        with open(path + file_name + ".gv", "w") as gv:
-            full_path = path + file_name + ".gv"
+        with open(full_path, "w") as gv:
             gv.write(digraph)
             gv.close()
     except Exception as ex:
@@ -409,10 +412,13 @@ def save_graph_png(digraph: str, file_name: str, path: str) -> str:
     Returns:
         str: Full path to file
     """
+
+    full_path = path + file_name + ".png"
+
     try:
         response = requests.post(GOOGLE_CHART_URL, data={"cht": "gv", "chl": digraph})
-        with open(path + file_name + ".png", "w+b") as image:
-            full_path = path + file_name + ".gv"
+        with open(full_path, "w+b") as image:
+
             binary_format = bytearray(response.content)
             image.write(binary_format)
             image.close()
