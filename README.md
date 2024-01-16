@@ -73,16 +73,16 @@ Graphs written to:
 
 | Description       | Flag                      | Example     | Notes       |
 | -----------       | -----------               | ----------- | ----------- |
-| Exclude link      | `--exclude-link`          | `... JIRA-8 --exclude-link "blocks"` | Can be repeated to exclude multiple links - useful to ignore bi-directional edges.     |
-| Ignore Epic       | `--ignore-epic`           | `... --ignore-epic JIRA-8` | Do not walk into issues of an Epic.  |
-| Filter by issue prefix  | `--issue-include`   | `... JIRA-8 --issue-include BLK`  | Only display issues with specified prefix, in this example the prefix is "BLK". |
-| Exclude issue(s)  | `--issue-exclude` / `-xi` | `... JIRA-8 --issue-exclude JIRA-2` | Can be repeated to exclude multiple issues. Use as last-resort when other exclusions not suitable.  |
-| Use JQL           | `--jql` | `... --jql 'project = Blockchain'` | Instead of passing issue-keys, a Jira Query Language command can be passed.
-| Ignore closed     | `--ignore-closed`         | `... JIRA-8 --ignore-closed` | Ignore all tickets that are closed. |
-| No merge "relates to"  | `--no-merge-relates`      | `... JIRA-8 --no-merge-relates` | Do not merge edges of related issues (creates cycle). |
+| Exclude link      | `--exclude-link`          | `... JIRA-8 --exclude-link "blocks"` | Exclude specified links, repeatable for multiple links. Useful to ignore bi-directional edges.     |
+| Ignore Epic       | `--ignore-epic`           | `... --ignore-epic JIRA-8` | Skip issues in an Epic.  |
+| Filter by issue prefix  | `--issue-include`   | `... JIRA-8 --issue-include BLK`  | Display issues with a specific prefix. In this example the prefix is "BLK". |
+| Exclude issue(s)  | `--issue-exclude` / `-xi` | `... JIRA-8 --issue-exclude JIRA-2` | Exclude specific issues, repeatable. Use as last-resort when other exclusions not suitable.  |
+| Use JQL           | `--jql` | `... --jql 'project = Blockchain'` | Use Jira Query Language command instead of issue-keys.
+| Ignore closed     | `--ignore-closed`         | `... JIRA-8 --ignore-closed` |  Ignore closed tickets. |
+| No merge "relates to"  | `--no-merge-relates`      | `... JIRA-8 --no-merge-relates` | Avoid merging related issue edges (creates cycle). |
 | PNG only  | `--png`      | `... JIRA-8 --png` | Save graph as ".png" only (Google API). |
 | Graphviz only  | `--gv`      | `... JIRA-8 --gv` | Save graph as ".gv" only (does not hit Google API). |
-| Filename               | `--file`                  | `... JIRA-8 --file=graphimg`         | Save output (whether .gv & .png or .png only) as a pre-defined file-name. Otherwise it will be saved as a concatinated list of JIRA issue keys (which may result in an error, if the list is too big: JIS-1+JIS-2+JIS-3....png) |
+| Filename               | `--file`                  | `... JIRA-8 --file=graphimg`         | Specify a custom file name for saving output. If not used, output is saved as a concatenated list of JIRA issue keys, which may cause errors if the list is too long. |
 
 > **Note**
 > `...` is equivalent to `python jira-dependency-graph.py --user=<JIRA_EMAIL> --password=<JIRA_API_KEY> --jira=https://<YOUR_ORGANIZATION>.atlassian.net`
@@ -173,8 +173,17 @@ This is a fork of [pawelrychlik/jira-dependency-graph](https://github.com/pawelr
   </ul>
 </details>
 
+<details>
+  <summary>
+    Changes by <a href="https://github.com/svscorp" target="_blank">svscorp</a>
+  </summary>
+  <ul>
+    <li>Improve compatibility with Python versions</li>
+  </ul>
+</details>
+
 ---
 
-<a href = "https://github.com/Tanu-N-Prabhu/Python/graphs/contributors">
+<a href = "https://github.com/zarifpour/jira-dependency-graph/graphs/contributors">
   <img src = "https://contrib.rocks/image?repo=zarifpour/jira-dependency-graph"/>
 </a>
