@@ -38,7 +38,7 @@ git clone https://github.com/zarifpour/jira-dependency-graph.git
 cd jira-dependency-graph
 poetry install
 poetry shell
-python jira-dependency-graph.py --user=<JIRA_EMAIL> --password=<JIRA_API_KEY> --jira=https://<YOUR_ORGANIZATION>.atlassian.net <JIRA_ISSUE_KEY>
+python jira-dependency-graph.py --user=<JIRA_EMAIL> --password=<JIRA_API_KEY> --jira=https://<YOUR_ORGANIZATION>.atlassian.net <JIRA_ISSUE_KEY> --show-directions outward
 ```
 
 > **Note**
@@ -73,13 +73,14 @@ Graphs written to:
 
 | Description       | Flag                      | Example     | Notes       |
 | -----------       | -----------               | ----------- | ----------- |
+| Show directions      | `--show-directions`          | `... JIRA-8 --show-directions outward` | Only display outward/inward links. **Useful to avoid cycles (recommended)**.     |
 | Exclude link      | `--exclude-link`          | `... JIRA-8 --exclude-link "blocks"` | Exclude specified links, repeatable for multiple links. Useful to ignore bi-directional edges.     |
 | Ignore Epic       | `--ignore-epic`           | `... --ignore-epic JIRA-8` | Skip issues in an Epic.  |
 | Filter by issue prefix  | `--issue-include`   | `... JIRA-8 --issue-include BLK`  | Display issues with a specific prefix. In this example the prefix is "BLK". |
 | Exclude issue(s)  | `--issue-exclude` / `-xi` | `... JIRA-8 --issue-exclude JIRA-2` | Exclude specific issues, repeatable. Use as last-resort when other exclusions not suitable.  |
 | Use JQL           | `--jql` | `... --jql 'project = Blockchain'` | Use Jira Query Language command instead of issue-keys.
 | Ignore closed     | `--ignore-closed`         | `... JIRA-8 --ignore-closed` |  Ignore closed tickets. |
-| No merge "relates to"  | `--no-merge-relates`      | `... JIRA-8 --no-merge-relates` | Avoid merging related issue edges (creates cycle). |
+| No merge "relates to"  | `--no-merge-relates`      | `... JIRA-8 --no-merge-relates` | Avoid merging related issue edges (creates cycles). |
 | PNG only  | `--png`      | `... JIRA-8 --png` | Save graph as ".png" only (Google API). |
 | Graphviz only  | `--gv`      | `... JIRA-8 --gv` | Save graph as ".gv" only (does not hit Google API). |
 | Filename               | `--file`                  | `... JIRA-8 --file=graphimg`         | Specify a custom file name for saving output. If not used, output is saved as a concatenated list of JIRA issue keys, which may cause errors if the list is too long. |

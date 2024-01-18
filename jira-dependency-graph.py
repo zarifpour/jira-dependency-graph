@@ -225,20 +225,21 @@ def build_graph_data(
             extra = ", dir=both"
 
         skip_links = [
-            "added to idea",
-            "clones",
-            "created by",
-            "duplicates",
-            "has to be done before",
-            "is blocked by",
-            "is caused by",
-            "is child of",
-            "is depended by",
-            "is discovered by testing",
-            "is implemented by",
-            "reviews",
-            "split from",
-            "tests",
+            # "added to idea",
+            # "created by",
+            # "has to be done before",
+            # "is blocked by",
+            # "is caused by",
+            # "is child of",
+            # "is cloned by",
+            # "is depended by",
+            # "is discovered by testing",
+            # "is duplicated by",
+            # "is implemented by",
+            # "is resolved by"
+            # "is reviewed by",
+            # "is tested by",
+            # "split from",
         ]
 
         if direction not in show_directions or link_type in skip_links:
