@@ -162,6 +162,15 @@ def build_graph_data(
 
         if islink:
             return '"{}\\n({})"'.format(issue_key, summary)
+
+        if fields.issuetype.name == "Epic":
+            return '"{}\\n({})" [href="{}", fillcolor="{}", style=filled, shape=doubleoctagon, color=purple]'.format(
+                issue_key,
+                summary,
+                jira.get_issue_uri(issue_key),
+                get_status_color(status),
+            )
+
         return '"{}\\n({})" [href="{}", fillcolor="{}", style=filled]'.format(
             issue_key, summary, jira.get_issue_uri(issue_key), get_status_color(status)
         )
@@ -423,7 +432,6 @@ def save_graph_png(digraph: str, file_name: str, path: str) -> str:
     try:
         response = requests.post(GOOGLE_CHART_URL, data={"cht": "gv", "chl": digraph})
         with open(full_path, "w+b") as image:
-
             binary_format = bytearray(response.content)
             image.write(binary_format)
             image.close()
@@ -623,7 +631,6 @@ def filter_duplicates(lst: List) -> List:
 
 @typing.no_type_check
 def main() -> None:
-
     FINISHED = False
 
     def spinner():
