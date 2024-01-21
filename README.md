@@ -41,7 +41,7 @@ poetry shell
 python jira-dependency-graph.py --user=<JIRA_EMAIL> --password=<JIRA_API_KEY> --jira=https://<YOUR_ORGANIZATION>.atlassian.net <JIRA_ISSUE_KEY> --show-directions outward
 ```
 
-> **Note**
+> [!Note]
 >
 > * Graphs are saved to `/out/gv/` (.gv) and `/out/png/` (.png)
 > * If a filename is not specified, by default, the issue name(s) are used
